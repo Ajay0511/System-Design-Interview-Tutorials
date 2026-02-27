@@ -1,0 +1,15 @@
+1. What is Scalability?
+
+Concept:
+Scalability is a system’s ability to handle increased load (users, requests, data) without performance degradation.
+
+Key idea:
+A scalable system grows smoothly, not by breaking.
+It’s about capacity planning, not just speed.
+
+Types:
+Vertical scaling – add more CPU/RAM
+Horizontal scaling – add more machines (preferred)
+
+Follow-up interview thought:
+Why horizontal scaling is harder → requires stateless services, distributed data, coordination.
