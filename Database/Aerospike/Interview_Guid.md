@@ -204,3 +204,22 @@ This is where the low-latency "magic" happens at the hardware level.
 3.  **Defragmentation:** A background process (the "Garbage Collector") identifies blocks with expired or deleted data and reclaims that space to keep the SSD performing at peak speeds.
 
 ***
+
+---
+
+# 9. What is the Primary Index?
+
+The primary index maps the key digest to the storage location of the record.
+
+
+Digest → Storage location
+
+
+Each index entry contains:
+
+- Key digest
+- Partition ID
+- Storage pointer
+- Metadata
+
+---
