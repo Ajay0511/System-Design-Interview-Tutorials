@@ -207,19 +207,65 @@ This is where the low-latency "magic" happens at the hardware level.
 
 ---
 
+# 8. What is Hybrid Memory Architecture?
+Aerospike uses hybrid memory architecture where the primary index is stored in RAM and the actual data is stored on SSD.
+
+RAM
+Primary Index
+
+SSD
+Record Data
+
+Benefits:
+- Fast lookups
+- Low RAM usage
+- Large storage capacity
+
+---
+
+
 # 9. What is the Primary Index?
-
 The primary index maps the key digest to the storage location of the record.
-
-
 Digest → Storage location
 
-
 Each index entry contains:
-
 - Key digest
 - Partition ID
 - Storage pointer
 - Metadata
+---
 
+# 10. What is a Digest?
+A digest is a hashed representation of the user key.
+Aerospike uses RIPEMD-160 hashing.
+
+User Key
+↓
+Hash (RIPEMD-160)
+↓
+Digest
+
+Purpose:
+- Uniform distribution
+- Fast lookups
+- Partition mapping
+
+---
+
+
+# 11. Why does Aerospike keep the primary index in RAM?
+The primary index is stored in RAM to achieve extremely low latency lookups.
+Lookup process:
+
+Client request
+↓
+Hash key → Digest
+↓
+Lookup digest in RAM index
+↓
+Find storage pointer
+↓
+Read record from SSD
+
+RAM lookup is extremely fast compared to disk access.
 ---
