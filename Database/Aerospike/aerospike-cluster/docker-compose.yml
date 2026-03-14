@@ -1,0 +1,24 @@
+services:
+
+  aerospike1:
+    image: aerospike/aerospike-server
+    container_name: aerospike1
+    hostname: aerospike1
+    volumes:
+      - ./node1/aerospike.conf:/etc/aerospike/aerospike.conf
+    ports:
+      - "3000:3000"
+
+  aerospike2:
+    image: aerospike/aerospike-server
+    container_name: aerospike2
+    hostname: aerospike2
+    volumes:
+      - ./node2/aerospike.conf:/etc/aerospike/aerospike.conf
+
+  aerospike3:
+    image: aerospike/aerospike-server
+    container_name: aerospike3
+    hostname: aerospike3
+    volumes:
+      - ./node3/aerospike.conf:/etc/aerospike/aerospike.conf
