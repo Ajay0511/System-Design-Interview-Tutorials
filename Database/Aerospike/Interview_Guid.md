@@ -134,10 +134,10 @@ Bins:
 
 | Your Concept | Aerospike Component | RDBMS Equivalent |
 |---------------|--------------------|------------------|
-| amcat | Namespace | Database / Tablespace |
-| token | Set | Table |
-| id_name | Key | Primary Key |
-| JSON Data | Bins / Record | Columns / Row |
+| amcat         | Namespace          | Database / Tablespace |
+| token         | Set                | Table |
+| id_name       | Key                | Primary Key |
+| JSON Data     | Bins / Record      | Columns / Row |
 
 ---
 
@@ -223,8 +223,16 @@ Benefits:
 
 ---
 
+# 9. What storage options does Aerospike support?
+Aerospike supports multiple storage modes to fit different workloads:
 
-# 9. What is the Primary Index?
+- **Memory (in-memory)**: All data (index + records) resides in RAM. Best for ultra-low latency and ephemeral data.
+- **SSD (storage)**: Index in RAM, records on SSD/NVMe (hybrid mode). Best balance of cost and capacity.
+- **Hybrid memory**: Data in SSD, index in RAM (default mode). Offers large capacity with predictable performance.
+
+---
+
+# 10. What is the Primary Index?
 The primary index maps the key digest to the storage location of the record.
 Digest → Storage location
 
@@ -269,3 +277,316 @@ Read record from SSD
 
 RAM lookup is extremely fast compared to disk access.
 ---
+---
+
+# 12. How does Aerospike distribute data across the cluster?
+Aerospike divides each namespace into 4096 partitions.
+These partitions are distributed across cluster nodes.
+
+Example:
+
+Cluster
+Node A → 1024 partitions
+Node B → 1024 partitions
+Node C → 1024 partitions
+Node D → 1024 partitions
+---
+
+# 13. Why does Aerospike use exactly 4096 partitions?
+4096 partitions provide:
+- Balanced data distribution
+- Efficient migration
+- Small metadata overhead
+- Faster rebalancing when nodes join or leave
+
+4096 = 2¹²
+
+## Advantages:
+- Fast bit operations for hashing
+- Efficient partition calculation
+- Perfect trade-off between
+- too few partitions (hotspots)
+- too many partitions (metadata overhead)
+---
+
+# 14. What is a Partition Map?
+Partition map tells the client which node owns which partition.
+Partition ID → Node
+
+Client flow:
+Client
+↓
+Hash key
+↓
+Determine partition
+↓
+Find node from partition map
+↓
+Send request directly
+---
+
+# 15. What happens when a new node joins the cluster?
+When a node joins:
+1. Cluster membership updates
+2. Partitions are reassigned
+3. Data migration begins
+4. Partition map updates
+
+Migration happens online without downtime.
+
+---
+
+# 16. What is Data Migration in Aerospike?
+Data migration occurs when partitions move between nodes due to cluster changes.
+
+Migration ensures:
+- Balanced partition distribution
+- Correct replication
+
+---
+
+# 17. How does replication work in Aerospike?
+Each partition has a master and replica nodes.
+
+Example:
+
+Replication Factor = 2
+Partition 100
+Master → Node1
+Replica → Node2
+
+---
+
+# 18. What is Replication Factor?
+Replication factor defines how many copies of a record exist.
+
+RF = 2 → 1 master + 1 replica
+RF = 3 → 1 master + 2 replicas
+---
+
+# 19. What is Rack Awareness?
+Rack awareness ensures replicas are placed on different racks.
+
+Example:
+Rack1 → Master
+Rack2 → Replica
+
+Purpose:
+- Survive rack failure
+- Improve fault tolerance
+---
+
+# 20. Does Aerospike support strong consistency?
+Yes.
+
+Aerospike supports two modes:
+- AP Mode (Availability + Partition tolerance)
+- Strong Consistency Mode
+---
+
+# 21. What is AP Mode?
+AP mode prioritizes availability.
+
+During network partition:
+- Both clusters may accept writes
+- Eventually the data becomes consistent.
+
+---
+
+# 22. What is Strong Consistency Mode?
+Strong consistency ensures:
+- Linearizable reads
+- No stale data
+- Strict write ordering
+
+Tradeoff:
+- Slightly higher latency
+- Reduced availability during partitions
+
+---
+
+# 23. How does Aerospike avoid split-brain?
+Aerospike uses Paxos-based cluster membership.
+Writes are allowed only when a majority of nodes are available.
+
+Example:
+RF = 3
+Minimum nodes required = 2
+
+If majority is not available, writes are blocked.
+---
+
+# 24. What happens during a rolling upgrade?
+Rolling upgrade means upgrading nodes one by one without downtime.
+
+Process:
+- Upgrade Node A
+- Node leaves cluster
+- Partitions migrate
+- Node rejoins cluster
+- Repeat for next node
+---
+
+# 26. How does Aerospike guarantee durability?
+Durability is achieved through:
+- Replication
+- SSD storage
+- Write commit levels
+
+Example:
+- COMMIT_MASTER
+- COMMIT_ALL
+
+COMMIT_ALL ensures writes are replicated before acknowledgment.
+---
+
+# 27. What is the Aerospike write path?
+Write flow:
+
+Client
+↓
+Node receives request
+↓
+Update primary index (in RAM)
+↓
+Write record to storage (SSD/NVMe)
+↓
+Replicate to replica nodes
+
+### Write commit levels
+Aerospike supports different durability levels:
+- **COMMIT_MASTER**: Acknowledge after master has written to storage.
+- **COMMIT_ALL**: Acknowledge after all replicas have stored the record.
+
+---
+
+# 28. What is the Aerospike read path?
+Read flow:
+
+Client
+↓
+Client hashes key to find partition
+↓
+Client routes to correct node via partition map
+↓
+Node looks up digest in primary index (in RAM)
+↓
+Node reads record from storage (SSD/NVMe)
+
+---
+
+# 29. What is a secondary index?
+A secondary index allows querying records by the value of a bin rather than the primary key.
+
+Example:
+- Query users where `age = 30`
+
+---
+
+# 30. Where are secondary indexes stored?
+Secondary indexes are stored in RAM for fast lookup.
+
+---
+
+# 31. What are the limitations of secondary indexes?
+- Higher RAM usage compared to primary key lookups
+- Slower than direct key-based access
+- Limited query complexity (no joins, limited predicates)
+
+---
+
+# 32. What is TTL (Time To Live)?
+TTL defines how long a record remains valid in Aerospike.
+
+Example:
+TTL = 3600 seconds (1 hour)
+
+After expiration, records are eligible for removal.
+
+---
+
+# 33. What is lazy expiration?
+Expired records are removed lazily:
+- During reads (when a client accesses an expired record)
+- During background scans (defragmentation / read operations)
+
+---
+
+# 34. How does Aerospike detect node failure?
+Nodes send heartbeats to each other.
+Heartbeat failure indicates node failure.
+
+Cluster then:
+- Updates membership
+- Reassigns partitions
+- Promotes replicas to master
+---
+
+# 30. What happens when a node crashes?
+
+Example:
+Cluster with RF = 2
+Node1 → Master
+Node2 → Replica
+
+If Node1 crashes:
+Node2 becomes master
+Cluster rebalances partitions
+Migration begins
+---
+
+# 31. What happens when memory for primary index is exhausted?
+
+Possible outcomes:
+- Writes are rejected
+- Eviction policy removes old records
+- Cluster must be scaled by adding nodes
+
+Example error:
+AEROSPIKE_ERR_NO_SPACE
+---
+
+# 32. How does Aerospike optimize SSD writes?
+Aerospike uses:
+- Log structured storage
+- Sequential writes
+- Write batching
+- Direct IO
+- Background defragmentation
+
+These techniques improve SSD performance.
+---
+
+# 33. How does Aerospike handle hot keys?
+Hot keys are keys that receive a disproportionate amount of traffic.
+
+Common mitigation strategies:
+- Shard the key at the application layer (e.g., add a random prefix)
+- Use client-side batching or caching (if possible)
+- Increase cluster capacity and spread partitions
+- Use strong consistency carefully to avoid additional load on a single master
+
+---
+
+# 34. What are common Aerospike production monitoring metrics?
+Important metrics include:
+- Latency
+- Object count
+- Memory usage
+- Migration progress
+- Replication lag
+- Disk usage
+---
+
+# 34. Why is Aerospike faster than many databases?
+Reasons:
+- Primary index in RAM
+- Direct client-to-node communication
+- SSD optimized storage
+- Lock-free architecture
+- Fixed partition distribution
+- Efficient threading model
+
+Typical performance:
+Latency: <1 ms
+Throughput: millions of operations per second
