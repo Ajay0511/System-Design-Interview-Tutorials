@@ -159,7 +159,6 @@ Here’s an **improved `.md` section (Q9 onward)** with **detailed, interview-re
 
 ---
 
-```md
 ## Q9. How does search work internally?
 
 Elasticsearch follows a **distributed scatter-gather model**, executed in two main phases:
