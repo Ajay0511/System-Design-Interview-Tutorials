@@ -1,7 +1,7 @@
 # Kafka
 
 ## Basics
-
+---
 ### Q1. What is Apache Kafka?
 **Answer:**
 Apache Kafka is a distributed event streaming platform used for building real-time data pipelines and streaming applications. It is designed for high throughput, fault tolerance, and scalability.
