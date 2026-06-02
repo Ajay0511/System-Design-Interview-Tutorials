@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/url_shortener
+    username: root
+    password: pass
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    show-sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
